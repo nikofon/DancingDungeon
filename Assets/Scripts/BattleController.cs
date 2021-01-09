@@ -15,7 +15,7 @@ public class BattleController : MonoBehaviour
     {
         OnActionTaken?.Invoke(new ActionTakenEventArgs
         {
-            ActionT = ActionType.HeavyAttack,
+            ActionT = t,
             Sender = sender
         });
     }
@@ -23,7 +23,6 @@ public class BattleController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Z))
         {
-            Debug.Log("z");
             OnActionTaken?.Invoke(new ActionTakenEventArgs
             {
                 ActionT = ActionType.HeavyAttack,

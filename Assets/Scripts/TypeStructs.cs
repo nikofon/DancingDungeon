@@ -49,3 +49,15 @@ public class ActionReaction
     public AnimationClip bossAnimation;
     public AudioClip sound;
 }
+public static class Extensions
+{
+    public static List<T> ArrayToList<T>(this Array a)
+    {
+        List<T> returnList  = new List<T>();
+        foreach(object n in a)
+        {
+            returnList.Add((T)n);
+        }
+        return returnList;
+    }
+}

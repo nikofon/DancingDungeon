@@ -1,9 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class RtythManager : MonoBehaviour
 {
+    public static RtythManager instance;
     #region TEST
     public AudioSource metronome;
     private void Start()
@@ -15,9 +17,14 @@ public class RtythManager : MonoBehaviour
     #endregion
     private ActionType currentPlayersAction;
     private ActionType currentEnemyAction;
+    public event Action<float> OnTick;
     public Enemy CurrentEnemy { get; private set; }
     private bool synced = false;
     public float errorMargin;
+    private void Awake()
+    {
+        instance = this;
+    }
     public void SetEnemy(Enemy enemy)
     {
         CurrentEnemy = enemy;
@@ -32,6 +39,7 @@ public class RtythManager : MonoBehaviour
             }
             else { currentPlayersAction = e.ActionT; }
         }
+        else { currentEnemyAction = e.ActionT; }
     }
     private ActionCompareResult CompareActions(ActionType playerAct, ActionType enemyAct, Enemy sender)
     {
@@ -132,8 +140,9 @@ public class RtythManager : MonoBehaviour
         while (true)
         {
             metronome.Play();
+            OnTick?.Invoke(errorMargin);
             yield return new WaitForSeconds(errorMargin);
-            Debug.Log(CompareActions(currentPlayersAction, currentEnemyAction, CurrentEnemy).ToString());
+            CompareActions(currentPlayersAction, currentEnemyAction, CurrentEnemy);
             BattleController.instance.OnActionTakenInvoke(CurrentEnemy.Act(), CurrentEnemy);
             currentPlayersAction = ActionType.NotTaken;
             synced = false;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,12 +15,14 @@ public class Enemy : MonoBehaviour
     public int HeavyAttackDamage { get { return heavyAttackDamage; } protected set { heavyAttackDamage = value; } }
     [SerializeField]
     private int heavyAttackDamage;
+    System.Random random = new System.Random();
 
     public ActionType Act()
     {
-        Array values = Enum.GetValues(typeof(ActionType));
-        System.Random random = new System.Random();
-        ActionType randomAction = (ActionType)values.GetValue(random.Next(values.Length));
+        List<ActionType> values = Enum.GetValues(typeof(ActionType)).ArrayToList<ActionType>();
+        values.Remove(ActionType.NotTaken);
+
+        ActionType randomAction = values[random.Next(values.Count)];
         return randomAction;
     } 
 
