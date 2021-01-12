@@ -3,10 +3,14 @@ using System.Collections;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class Enemy : MonoBehaviour
-{ 
-    public int Health { get { return health; } protected set { health = value; } }
+{
+    public TextMeshProUGUI endText;
+    public TextMeshProUGUI textMesh;
+    private Animator am;
+    public int Health { get { return health; } protected set { if(value == 0)  endText.gameObject.SetActive(true); health = value; textMesh.text = "Health " + value; } }
     [SerializeField]
     private int health;
     public int SwiftAttackDamage { get { return swiftAttackDamage; } protected set { swiftAttackDamage = value; } }
@@ -17,6 +21,12 @@ public class Enemy : MonoBehaviour
     private int heavyAttackDamage;
     System.Random random = new System.Random();
 
+    private void Start()
+    {
+        endText.gameObject.SetActive(false);
+        am = GetComponent<Animator>();
+        BattleController.instance.OnActionTaken += PlayAnimation;
+    }
     public ActionType Act()
     {
         List<ActionType> values = Enum.GetValues(typeof(ActionType)).ArrayToList<ActionType>();
@@ -26,6 +36,20 @@ public class Enemy : MonoBehaviour
         return randomAction;
     } 
 
+    public void PlayAnimation(ActionTakenEventArgs e)
+    {
+        if(e.Sender != (object) PlayerStateManager.instance)
+        {
+            switch (e.ActionT)
+            {
+                case ActionType.Block: am.Play("Block");
+                    break;
+                case ActionType.HeavyAttack: am.Play("Attack");
+                    break;
+
+            }
+        }
+    }
     public void Attack(ActionType attack)
     {
         switch(attack)

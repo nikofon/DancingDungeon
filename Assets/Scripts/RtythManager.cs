@@ -6,21 +6,19 @@ using UnityEngine;
 public class RtythManager : MonoBehaviour
 {
     public static RtythManager instance;
-    #region TEST
-    public AudioSource metronome;
-    private void Start()
-    {
-        StartCoroutine(Metronome(1f));
-        SetEnemy(FindObjectOfType<Enemy>());
-        BattleController.instance.OnActionTaken += RecieveAction;
-    }
-    #endregion
+    public float bossAnimSpeed;
     private ActionType currentPlayersAction;
     private ActionType currentEnemyAction;
     public event Action<float> OnTick;
     public Enemy CurrentEnemy { get; private set; }
+    public bool Synced { get { return synced; } }
     private bool synced = false;
     public float errorMargin;
+    private void Start()
+    {
+        SetEnemy(FindObjectOfType<Enemy>());
+        BattleController.instance.OnActionTaken += RecieveAction;
+    }
     private void Awake()
     {
         instance = this;
@@ -36,16 +34,38 @@ public class RtythManager : MonoBehaviour
             if (!synced)
             {
                 PlayerStateManager.AsyncPenalty();
+                Debug.Log("Not Synced!");
             }
             else { currentPlayersAction = e.ActionT; }
         }
         else { currentEnemyAction = e.ActionT; }
     }
+    public void StartMetronome(float beat)
+    {
+        StartCoroutine(Metronome(beat));
+    }
     private ActionCompareResult CompareActions(ActionType playerAct, ActionType enemyAct, Enemy sender)
     {
         if(playerAct == ActionType.NotTaken)
         {
-            return ActionCompareResult.NotTakenBlock;
+            if (enemyAct == ActionType.HeavyAttack)
+            {
+                sender.Attack(ActionType.HeavyAttack);
+                return ActionCompareResult.NotTakenHeavyAttack;
+            }
+            if (enemyAct == ActionType.Dodge)
+            {
+                return ActionCompareResult.NotTakenDodge;
+            }
+            if (enemyAct == ActionType.SwiftAttack)
+            {
+                sender.Attack(ActionType.SwiftAttack);
+                return ActionCompareResult.NotTakenSwiftAttack;
+            }
+            if (enemyAct == ActionType.Block)
+            {
+                return ActionCompareResult.NotTakenBlock;
+            }
         }
         if (playerAct == ActionType.Block)
         {
@@ -139,14 +159,13 @@ public class RtythManager : MonoBehaviour
         currentPlayersAction = ActionType.NotTaken;
         while (true)
         {
-            metronome.Play();
             OnTick?.Invoke(errorMargin);
             yield return new WaitForSeconds(errorMargin);
             CompareActions(currentPlayersAction, currentEnemyAction, CurrentEnemy);
-            BattleController.instance.OnActionTakenInvoke(CurrentEnemy.Act(), CurrentEnemy);
             currentPlayersAction = ActionType.NotTaken;
             synced = false;
             yield return new WaitForSeconds(beat - 2*errorMargin);
+            BattleController.instance.OnActionTakenInvoke(CurrentEnemy.Act(), CurrentEnemy);
             synced = true;
             yield return new WaitForSeconds(errorMargin);
         }

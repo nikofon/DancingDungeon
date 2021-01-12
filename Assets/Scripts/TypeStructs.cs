@@ -60,4 +60,16 @@ public static class Extensions
         }
         return returnList;
     }
+    public static float Sign(this float a)
+    {
+        if (a > 0) return 1;
+        if (a == 0) return 0;
+        return -1;
+    }
+   
+}
+public enum TextObjs
+{
+    player,
+    boss
 }
